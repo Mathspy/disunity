@@ -1,0 +1,16 @@
+BIG FILE SUPPORT (version 0x16)
+
+[HEADER]
+[UNITY_VERSION] until null byte
+[SOMETHING]
+
+# HEADER - BIG ENDIAN
+_null bytes_				8 bytes
+version							4 bytes
+_null bytes_				4 bytes
+endianess						1 byte  // 00 means little endian
+RESERVED???					3 bytes
+metadata						4 bytes
+filesize						8 bytes
+data offset					8 bytes
+unknown							8 bytes
