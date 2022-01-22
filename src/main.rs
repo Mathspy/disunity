@@ -105,6 +105,12 @@ fn get_target_platform<R: BufRead>(file: &mut R, endianess: Endianess) -> Result
     Ok(target_platform.into())
 }
 
+fn get_boolean<R: BufRead>(file: &mut R) -> Result<bool> {
+    let mut buffer = [0u8; 0];
+    file.read_exact(&mut buffer)?;
+    Ok(buffer[0] == 0)
+}
+
 fn main() -> Result<()> {
     let file = File::open("/Users/mathspy/Downloads/resources.assets")?;
     let mut file = BufReader::new(file);
@@ -112,6 +118,7 @@ fn main() -> Result<()> {
     let header = dbg!(get_header(&mut file)?);
     dbg!(get_unity_version(&mut file)?);
     dbg!(get_target_platform(&mut file, header.endianess)?);
+    let _type_tree_enabled = get_boolean(&mut file)?;
 
     Ok(())
 }

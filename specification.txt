@@ -20,3 +20,4 @@ string until null byte
 
 # SOMETHING - DEPENDS ON `endianess` FROM HEADER. 0 is little endian
 target platform 		4 bytes
+type tree enabled		1 bytes // boolean
