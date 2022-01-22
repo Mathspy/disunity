@@ -14,3 +14,6 @@ metadata						4 bytes
 filesize						8 bytes
 data offset					8 bytes
 unknown							8 bytes
+
+# UNITY_VERSION - UTF-8 HAS NO ENDIANESS. THANKS LARA.
+string until null byte

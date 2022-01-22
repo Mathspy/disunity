@@ -1,8 +1,7 @@
-use anyhow::Result;
+use anyhow::{format_err, Context, Result};
 use std::{
     fs::File,
-    io::{BufRead, BufReader, Read},
-    str::from_utf8,
+    io::{BufRead, BufReader},
 };
 
 #[derive(Debug)]
@@ -54,16 +53,27 @@ fn get_header<R: BufRead>(file: &mut R) -> Result<Header> {
     })
 }
 
+fn get_unity_version<R: BufRead>(file: &mut R) -> Result<String> {
+    let mut buffer = Vec::new();
+
+    if file.read_until(0, &mut buffer)? == 0 {
+        return Err(format_err!(
+            "Expected Unity version ending with a null byte"
+        ));
+    }
+
+    // Drop null byte
+    buffer.pop();
+
+    String::from_utf8(buffer).context("Failed to parse unity version as valid utf-8")
+}
+
 fn main() -> Result<()> {
     let file = File::open("/Users/mathspy/Downloads/resources.assets")?;
     let mut file = BufReader::new(file);
 
-    dbg!(get_header(&mut file));
-
-    // dbg!(file.read_until(0, &mut buffer)?);
-    // let string = from_utf8(&buffer)?;
-
-    // dbg!(string);
+    dbg!(get_header(&mut file)?);
+    dbg!(get_unity_version(&mut file)?);
 
     Ok(())
 }
