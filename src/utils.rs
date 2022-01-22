@@ -1,5 +1,5 @@
 use crate::Endianess;
-use std::io::{Read, Result};
+use std::io::{BufRead, Error, ErrorKind, Read, Result};
 
 pub(crate) trait ReadExt: Read {
     fn read_u8(&mut self) -> Result<u8> {
@@ -46,3 +46,20 @@ pub(crate) trait ReadExt: Read {
 }
 
 impl<T> ReadExt for T where T: Read {}
+
+pub(crate) trait BufReadExt: BufRead {
+    fn read_null_terminated_string(&mut self) -> Result<String> {
+        let mut buffer = Vec::new();
+
+        if self.read_until(0, &mut buffer)? == 0 {
+            return Err(Error::from(ErrorKind::UnexpectedEof));
+        }
+
+        // Drop null byte
+        buffer.pop();
+
+        String::from_utf8(buffer).map_err(|error| Error::new(ErrorKind::InvalidData, error))
+    }
+}
+
+impl<T> BufReadExt for T where T: BufRead {}

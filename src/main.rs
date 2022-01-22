@@ -3,9 +3,9 @@ mod utils;
 use anyhow::{format_err, Context, Result};
 use std::{
     fs::File,
-    io::{BufRead, BufReader},
+    io::{BufRead, BufReader, ErrorKind},
 };
-use utils::ReadExt;
+use utils::{BufReadExt, ReadExt};
 
 #[derive(Debug)]
 enum Endianess {
@@ -58,19 +58,16 @@ fn parse_header(file: &mut BufReader<File>) -> Result<Header> {
     })
 }
 
-fn get_unity_version<R: BufRead>(file: &mut R) -> Result<String> {
-    let mut buffer = Vec::new();
-
-    if file.read_until(0, &mut buffer)? == 0 {
-        return Err(format_err!(
-            "Expected Unity version ending with a null byte"
-        ));
-    }
-
-    // Drop null byte
-    buffer.pop();
-
-    String::from_utf8(buffer).context("Failed to parse unity version as valid utf-8")
+fn parse_unity_version(file: &mut BufReader<File>) -> Result<String> {
+    file.read_null_terminated_string()
+        .map_err(|error| match error.kind() {
+            ErrorKind::UnexpectedEof => {
+                format_err!("Expected Unity version ending with a null byte")
+            }
+            ErrorKind::InvalidData => format_err!("Failed to parse unity version as valid utf-8"),
+            // TODO: This is silly.
+            _ => Err::<(), _>(error).context("Unexpected error").unwrap_err(),
+        })
 }
 
 #[derive(Debug)]
@@ -111,7 +108,7 @@ fn main() -> Result<()> {
     let mut file = BufReader::new(file);
 
     let header = dbg!(parse_header(&mut file)?);
-    dbg!(get_unity_version(&mut file)?);
+    dbg!(parse_unity_version(&mut file)?);
     dbg!(get_target_platform(&mut file, header.endianess)?);
     let _type_tree_enabled = get_boolean(&mut file)?;
 
