@@ -17,3 +17,6 @@ unknown							8 bytes
 
 # UNITY_VERSION - UTF-8 HAS NO ENDIANESS. THANKS LARA.
 string until null byte
+
+# SOMETHING - DEPENDS ON `endianess` FROM HEADER. 0 is little endian
+target platform 		4 bytes
