@@ -2,7 +2,7 @@ BIG FILE SUPPORT (version 0x16)
 
 [HEADER]
 [UNITY_VERSION] until null byte
-[SOMETHING]
+[HEADER TAIL]
 
 # HEADER - BIG ENDIAN
 _null bytes_				8 bytes
@@ -18,6 +18,6 @@ unknown							8 bytes
 # UNITY_VERSION - UTF-8 HAS NO ENDIANESS. THANKS LARA.
 string until null byte
 
-# SOMETHING - DEPENDS ON `endianess` FROM HEADER. 0 is little endian
+# HEADER TAIL - DEPENDS ON `endianess` FROM HEADER. 0 is little endian
 target platform 		4 bytes
 type tree enabled		1 bytes // boolean
