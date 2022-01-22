@@ -1,11 +1,14 @@
+mod error;
 mod utils;
 
-use anyhow::{format_err, Context, Result};
+use error::{ParseResult, ParserContext};
 use std::{
     fs::File,
     io::{BufRead, BufReader, ErrorKind},
 };
 use utils::{BufReadExt, ReadExt};
+
+use crate::error::ParseError;
 
 #[derive(Debug)]
 enum Endianess {
@@ -23,16 +26,19 @@ struct Header {
     data_offset: u64,
 }
 
-fn parse_header(file: &mut BufReader<File>) -> Result<Header> {
+fn parse_header(file: &mut BufReader<File>) -> ParseResult<Header> {
     // Ignore first 8 bytes
-    file.seek_relative(8)?;
+    file.seek_relative(8).context("ignoring first 8 bytes")?;
 
-    let version = file.read_u32(Endianess::Big)?;
+    let version = file
+        .read_u32(Endianess::Big)
+        .context("reading header version")?;
 
     // Ignore 4 bytes
-    file.seek_relative(4)?;
+    file.seek_relative(4)
+        .context("ignoring 4 bytes after header")?;
 
-    let endianess = file.read_bool()?;
+    let endianess = file.read_bool().context("reading endianess boolean")?;
     let endianess = if endianess {
         Endianess::Big
     } else {
@@ -40,14 +46,21 @@ fn parse_header(file: &mut BufReader<File>) -> Result<Header> {
     };
 
     // Throw away "reserved" for now
-    file.seek_relative(3)?;
+    file.seek_relative(3).context("ignoring reserved bytes")?;
 
-    let metadata = file.read_u32(Endianess::Big)?;
-    let file_size = file.read_u64(Endianess::Big)?;
-    let data_offset = file.read_u64(Endianess::Big)?;
+    let metadata = file
+        .read_u32(Endianess::Big)
+        .context("reading header metadata")?;
+    let file_size = file
+        .read_u64(Endianess::Big)
+        .context("reading header file size")?;
+    let data_offset = file
+        .read_u64(Endianess::Big)
+        .context("reading header data offset")?;
 
     // Ignore 8 unknown bytes
-    file.seek_relative(8)?;
+    file.seek_relative(8)
+        .context("ignoring last 8 bytes of header")?;
 
     Ok(Header {
         version,
@@ -58,15 +71,16 @@ fn parse_header(file: &mut BufReader<File>) -> Result<Header> {
     })
 }
 
-fn parse_unity_version(file: &mut BufReader<File>) -> Result<String> {
+fn parse_unity_version(file: &mut BufReader<File>) -> ParseResult<String> {
     file.read_null_terminated_string()
-        .map_err(|error| match error.kind() {
+        .map_err(|(error, bytes)| match error.kind() {
             ErrorKind::UnexpectedEof => {
-                format_err!("Expected Unity version ending with a null byte")
+                ParseError::expected("Unity version ending with a null byte", bytes, error)
             }
-            ErrorKind::InvalidData => format_err!("Failed to parse unity version as valid utf-8"),
-            // TODO: This is silly.
-            _ => Err::<(), _>(error).context("Unexpected error").unwrap_err(),
+            ErrorKind::InvalidData => {
+                ParseError::expected("valid utf-8 for Unity version", bytes, error)
+            }
+            _ => ParseError::unexpected("parsing Unity version string", error),
         })
 }
 
@@ -85,10 +99,14 @@ impl From<i32> for TargetPlatform {
     }
 }
 
-fn get_target_platform<R: BufRead>(file: &mut R, endianess: Endianess) -> Result<TargetPlatform> {
+fn get_target_platform<R: BufRead>(
+    file: &mut R,
+    endianess: Endianess,
+) -> ParseResult<TargetPlatform> {
     let mut buffer = [0u8; 4];
 
-    file.read_exact(&mut buffer)?;
+    file.read_exact(&mut buffer)
+        .context("reading target platform")?;
     let target_platform = match endianess {
         Endianess::Big => i32::from_be_bytes(buffer),
         Endianess::Little => i32::from_le_bytes(buffer),
@@ -97,14 +115,15 @@ fn get_target_platform<R: BufRead>(file: &mut R, endianess: Endianess) -> Result
     Ok(target_platform.into())
 }
 
-fn get_boolean<R: BufRead>(file: &mut R) -> Result<bool> {
+fn get_boolean<R: BufRead>(file: &mut R) -> ParseResult<bool> {
     let mut buffer = [0u8; 0];
-    file.read_exact(&mut buffer)?;
+    file.read_exact(&mut buffer)
+        .context("reading type tree status")?;
     Ok(buffer[0] == 0)
 }
 
-fn main() -> Result<()> {
-    let file = File::open("/Users/mathspy/Downloads/resources.assets")?;
+fn main() -> ParseResult<()> {
+    let file = File::open("/Users/mathspy/Downloads/resources.assets").unwrap();
     let mut file = BufReader::new(file);
 
     let header = dbg!(parse_header(&mut file)?);
