@@ -99,18 +99,13 @@ impl From<i32> for TargetPlatform {
     }
 }
 
-fn get_target_platform<R: BufRead>(
-    file: &mut R,
+fn parse_target_platform(
+    file: &mut BufReader<File>,
     endianess: Endianess,
 ) -> ParseResult<TargetPlatform> {
-    let mut buffer = [0u8; 4];
-
-    file.read_exact(&mut buffer)
+    let target_platform = file
+        .read_i32(endianess)
         .context("reading target platform")?;
-    let target_platform = match endianess {
-        Endianess::Big => i32::from_be_bytes(buffer),
-        Endianess::Little => i32::from_le_bytes(buffer),
-    };
 
     Ok(target_platform.into())
 }
@@ -128,7 +123,7 @@ fn main() -> ParseResult<()> {
 
     let header = dbg!(parse_header(&mut file)?);
     dbg!(parse_unity_version(&mut file)?);
-    dbg!(get_target_platform(&mut file, header.endianess)?);
+    dbg!(parse_target_platform(&mut file, header.endianess)?);
     let _type_tree_enabled = get_boolean(&mut file)?;
 
     Ok(())
