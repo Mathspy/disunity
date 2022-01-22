@@ -4,7 +4,7 @@ mod utils;
 use error::{ParseResult, ParserContext};
 use std::{
     fs::File,
-    io::{BufRead, BufReader, ErrorKind},
+    io::{BufReader, ErrorKind},
 };
 use utils::{BufReadExt, ReadExt};
 
@@ -110,11 +110,8 @@ fn parse_target_platform(
     Ok(target_platform.into())
 }
 
-fn get_boolean<R: BufRead>(file: &mut R) -> ParseResult<bool> {
-    let mut buffer = [0u8; 0];
-    file.read_exact(&mut buffer)
-        .context("reading type tree status")?;
-    Ok(buffer[0] == 0)
+fn parse_type_tree_presence(file: &mut BufReader<File>) -> ParseResult<bool> {
+    file.read_bool().context("reading type tree status")
 }
 
 fn main() -> ParseResult<()> {
@@ -124,7 +121,7 @@ fn main() -> ParseResult<()> {
     let header = dbg!(parse_header(&mut file)?);
     dbg!(parse_unity_version(&mut file)?);
     dbg!(parse_target_platform(&mut file, header.endianess)?);
-    let _type_tree_enabled = get_boolean(&mut file)?;
+    let _has_type_tree = parse_type_tree_presence(&mut file)?;
 
     Ok(())
 }
