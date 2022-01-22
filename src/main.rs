@@ -1,8 +1,11 @@
+mod utils;
+
 use anyhow::{format_err, Context, Result};
 use std::{
     fs::File,
     io::{BufRead, BufReader},
 };
+use utils::ReadExt;
 
 #[derive(Debug)]
 enum Endianess {
@@ -20,39 +23,31 @@ struct Header {
     data_offset: u64,
 }
 
-fn get_header<R: BufRead>(file: &mut R) -> Result<Header> {
-    let mut buffer = [0u8; 8];
-
+fn parse_header(file: &mut BufReader<File>) -> Result<Header> {
     // Ignore first 8 bytes
-    file.read_exact(&mut buffer)?;
+    file.seek_relative(8)?;
 
-    file.read_exact(&mut buffer[0..4])?;
-    let version = u32::from_be_bytes(buffer[0..4].try_into()?);
+    let version = file.read_u32(Endianess::Big)?;
 
     // Ignore 4 bytes
-    file.read_exact(&mut buffer[0..4])?;
+    file.seek_relative(4)?;
 
-    file.read_exact(&mut buffer[0..1])?;
-    let endianess = if buffer[0] == 0 {
-        Endianess::Little
-    } else {
+    let endianess = file.read_bool()?;
+    let endianess = if endianess {
         Endianess::Big
+    } else {
+        Endianess::Little
     };
 
     // Throw away "reserved" for now
-    file.read_exact(&mut buffer[0..3])?;
+    file.seek_relative(3)?;
 
-    file.read_exact(&mut buffer[0..4])?;
-    let metadata = u32::from_be_bytes(buffer[0..4].try_into()?);
-
-    file.read_exact(&mut buffer)?;
-    let file_size = u64::from_be_bytes(buffer);
-
-    file.read_exact(&mut buffer)?;
-    let data_offset = u64::from_be_bytes(buffer);
+    let metadata = file.read_u32(Endianess::Big)?;
+    let file_size = file.read_u64(Endianess::Big)?;
+    let data_offset = file.read_u64(Endianess::Big)?;
 
     // Ignore 8 unknown bytes
-    file.read_exact(&mut buffer)?;
+    file.seek_relative(8)?;
 
     Ok(Header {
         version,
@@ -115,7 +110,7 @@ fn main() -> Result<()> {
     let file = File::open("/Users/mathspy/Downloads/resources.assets")?;
     let mut file = BufReader::new(file);
 
-    let header = dbg!(get_header(&mut file)?);
+    let header = dbg!(parse_header(&mut file)?);
     dbg!(get_unity_version(&mut file)?);
     dbg!(get_target_platform(&mut file, header.endianess)?);
     let _type_tree_enabled = get_boolean(&mut file)?;
