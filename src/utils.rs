@@ -17,6 +17,15 @@ pub(crate) trait ReadExt: Read {
         })
     }
 
+    fn read_u16(&mut self, endianess: Endianess) -> IoResult<u16> {
+        let mut buffer = [0u8; 2];
+        self.read_exact(&mut buffer)?;
+        Ok(match endianess {
+            Endianess::Big => u16::from_be_bytes(buffer),
+            Endianess::Little => u16::from_le_bytes(buffer),
+        })
+    }
+
     fn read_u32(&mut self, endianess: Endianess) -> IoResult<u32> {
         let mut buffer = [0u8; 4];
         self.read_exact(&mut buffer)?;

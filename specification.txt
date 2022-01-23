@@ -3,6 +3,7 @@ BIG FILE SUPPORT (version 0x16)
 [HEADER]
 [UNITY_VERSION] until null byte
 [HEADER TAIL]
+[ASSET TYPES]
 
 # HEADER - BIG ENDIAN
 _null bytes_				8 bytes
@@ -21,3 +22,19 @@ string until null byte
 # HEADER TAIL - DEPENDS ON `endianess` FROM HEADER. 0 is little endian
 target platform 		4 bytes
 type tree enabled		1 bytes // boolean
+
+# ASSET TYPES - DEPENDS ON `endianess` FROM HEADER. 0 is little endian
+count               4 bytes
+[asset-type 1]
+[asset-type 2]
+...
+[asset-type count]
+
+asset-type:
+class id            4 bytes
+is stripped         1 byte // bolean
+script type index   2 bytes
+if class id == 114:
+  script id         16 bytes
+endif
+old type hash       16 bytes
