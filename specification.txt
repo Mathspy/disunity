@@ -5,25 +5,25 @@ BIG FILE SUPPORT (version 0x16)
 [HEADER TAIL]
 [ASSET TYPES]
 
-# HEADER - BIG ENDIAN
-_null bytes_				8 bytes
-version							4 bytes
-_null bytes_				4 bytes
-endianess						1 byte  // 00 means little endian
-RESERVED???					3 bytes
-metadata						4 bytes
-filesize						8 bytes
-data offset					8 bytes
-unknown							8 bytes
+# HEADER - BIGENDIAN (48 bytes)
+---- 8 bytes of padding ----
+version               4 bytes
+---- 4 bytes of padding ----
+endianness            1 byte  // 00 means little endian
+---- 3 bytes of padding ----
+metadata              4 bytes
+filesize              8 bytes
+data offset           8 bytes
+---- 8 bytes of padding ----
 
-# UNITY_VERSION - UTF-8 HAS NO ENDIANESS. THANKS LARA.
+# UNITY_VERSION - UTF-8 HAS NO ENDIANNESS. THANKS LARA.
 string until null byte
 
-# HEADER TAIL - DEPENDS ON `endianess` FROM HEADER. 0 is little endian
-target platform 		4 bytes
-type tree enabled		1 bytes // boolean
+# HEADER TAIL - DEPENDS ON `endianness` FROM HEADER. 0 is little endian
+target platform     4 bytes
+type tree enabled   1 bytes // boolean
 
-# ASSET TYPES - DEPENDS ON `endianess` FROM HEADER. 0 is little endian
+# ASSET TYPES - DEPENDS ON `endianness` FROM HEADER. 0 is little endian
 count               4 bytes
 [asset-type 1]
 [asset-type 2]
