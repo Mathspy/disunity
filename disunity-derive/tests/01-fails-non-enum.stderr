@@ -1,0 +1,11 @@
+error: Variants can't be derived on structs
+ --> tests/01-fails-non-enum.rs:4:1
+  |
+4 | struct Class {
+  | ^^^^^^
+
+error: Variants can't be derived on unions
+ --> tests/01-fails-non-enum.rs:9:1
+  |
+9 | union MyUnion {
+  | ^^^^^
