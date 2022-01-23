@@ -31,6 +31,7 @@ fn inner(input: DeriveInput) -> TokenStream2 {
     let variants = data
         .variants
         .into_iter()
+        .filter(|variant| variant.ident != "Unknown")
         .map(|mut variant| {
             variant.fields = Fields::Unit;
             variant
