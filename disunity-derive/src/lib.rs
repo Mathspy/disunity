@@ -1,7 +1,10 @@
 use proc_macro::TokenStream;
 use proc_macro2::TokenStream as TokenStream2;
 use quote::{format_ident, quote, ToTokens};
-use syn::{parse_macro_input, Data, DataStruct, DataUnion, DeriveInput};
+use syn::{
+    parse_macro_input, punctuated::Punctuated, token::Comma, Data, DataStruct, DataUnion,
+    DeriveInput, Fields, Variant,
+};
 
 #[proc_macro_derive(Variants)]
 pub fn derive(input: TokenStream) -> TokenStream {
@@ -25,7 +28,14 @@ fn inner(input: DeriveInput) -> TokenStream2 {
     };
 
     let name = format_ident!("{}Variants", input.ident);
-    let variants = data.variants;
+    let variants = data
+        .variants
+        .into_iter()
+        .map(|mut variant| {
+            variant.fields = Fields::Unit;
+            variant
+        })
+        .collect::<Punctuated<Variant, Comma>>();
 
     quote! {
         enum #name {
