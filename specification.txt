@@ -1,3 +1,31 @@
+EARLIER VERSIONS (version 0x03)
+
+[HEADER]
+<TODO>
+
+# HEADER - BIGENDIAN (16 bytes)
+metadata              4 bytes
+filesize              4 bytes
+version               4 bytes
+data offset           4 bytes
+
+-------------------------------------------------------------------------------
+
+UNITY 4 VERSION  (version 0x09)
+
+[HEADER]
+<TODO>
+
+# HEADER - BIGENDIAN (20 bytes)
+metadata              4 bytes
+filesize              4 bytes
+version               4 bytes
+data offset           4 bytes
+endianness            1 byte
+---- 3 bytes of padding ----
+
+-------------------------------------------------------------------------------
+
 BIG FILE SUPPORT (version 0x16)
 
 [HEADER]
