@@ -1,5 +1,6 @@
 use proc_macro::TokenStream;
 use proc_macro2::TokenStream as TokenStream2;
+use quote::{format_ident, quote, ToTokens};
 use syn::{parse_macro_input, Data, DataStruct, DataUnion, DeriveInput};
 
 #[proc_macro_derive(Variants)]
@@ -11,7 +12,7 @@ pub fn derive(input: TokenStream) -> TokenStream {
 }
 
 fn inner(input: DeriveInput) -> TokenStream2 {
-    let _data = match input.data {
+    let data = match input.data {
         Data::Struct(DataStruct { struct_token, .. }) => {
             return syn::Error::new(struct_token.span, "Variants can't be derived on structs")
                 .into_compile_error();
@@ -23,5 +24,13 @@ fn inner(input: DeriveInput) -> TokenStream2 {
         Data::Enum(data) => data,
     };
 
-    todo!()
+    let name = format_ident!("{}Variants", input.ident);
+    let variants = data.variants;
+
+    quote! {
+        enum #name {
+            #variants
+        }
+    }
+    .into_token_stream()
 }
