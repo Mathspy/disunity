@@ -1,7 +1,9 @@
 [package]
 name = "disunity"
+description = "Unity files format Rust parsing and editing library"
 version = "0.1.0"
 edition = "2021"
+repository = "https://github.com/Mathspy/disunity/"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
