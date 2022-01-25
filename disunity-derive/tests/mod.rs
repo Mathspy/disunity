@@ -5,4 +5,5 @@ fn tests() {
     t.pass("tests/02-simple.rs");
     t.pass("tests/03-with-fields.rs");
     t.compile_fail("tests/04-ignore-unknown-field.rs");
+    t.compile_fail("tests/05-invalid-discriminant.rs");
 }
