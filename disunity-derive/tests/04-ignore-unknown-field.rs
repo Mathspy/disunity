@@ -1,6 +1,6 @@
-use disunity_derive::Variants;
+use disunity_derive::Variant;
 
-#[derive(Variants)]
+#[derive(Variant)]
 enum Class {
     Unknown(u32),
     #[disunity(discriminant = 1)]
@@ -12,7 +12,7 @@ enum Class {
 }
 
 fn main() {
-    let _ = ClassVariants::GameObject;
-    let _ = ClassVariants::Transform;
-    let _ = ClassVariants::Unknown;
+    let _ = ClassVariant::GameObject;
+    let _ = ClassVariant::Transform;
+    let _ = ClassVariant::Unknown;
 }

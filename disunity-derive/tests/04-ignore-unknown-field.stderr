@@ -1,8 +1,8 @@
-error[E0599]: no variant or associated item named `Unknown` found for enum `ClassVariants` in the current scope
-  --> tests/04-ignore-unknown-field.rs:17:28
+error[E0599]: no variant or associated item named `Unknown` found for enum `ClassVariant` in the current scope
+  --> tests/04-ignore-unknown-field.rs:17:27
    |
-3  | #[derive(Variants)]
-   |          -------- variant or associated item `Unknown` not found here
+3  | #[derive(Variant)]
+   |          ------- variant or associated item `Unknown` not found here
 ...
-17 |     let _ = ClassVariants::Unknown;
-   |                            ^^^^^^^ variant or associated item not found in `ClassVariants`
+17 |     let _ = ClassVariant::Unknown;
+   |                           ^^^^^^^ variant or associated item not found in `ClassVariant`

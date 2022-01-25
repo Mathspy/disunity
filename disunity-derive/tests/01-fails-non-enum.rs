@@ -1,12 +1,12 @@
-use disunity_derive::Variants;
+use disunity_derive::Variant;
 
-#[derive(Variants)]
+#[derive(Variant)]
 struct Class {
     #[disunity(discriminate = 1)]
     field: i32,
 }
 
-#[derive(Variants)]
+#[derive(Variant)]
 union MyUnion {
     #[disunity(discriminate = 1)]
     f1: u32,
