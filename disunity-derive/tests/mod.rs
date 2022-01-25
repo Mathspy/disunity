@@ -8,4 +8,5 @@ fn tests() {
     t.compile_fail("tests/05-invalid-discriminant.rs");
     t.compile_fail("tests/06-too-many-attributes.rs");
     t.compile_fail("tests/07-missing-disunity-attribute.rs");
+    t.compile_fail("tests/08-missing-discriminant-val.rs");
 }
