@@ -1,0 +1,5 @@
+error: variant without a #[disunity(discriminant = N)] attribute
+  --> tests/07-missing-disunity-attribute.rs:11:5
+   |
+11 |     Transform,
+   |     ^^^^^^^^^
