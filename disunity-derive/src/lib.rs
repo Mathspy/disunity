@@ -3,7 +3,7 @@ use proc_macro2::TokenStream as TokenStream2;
 use quote::{format_ident, quote, ToTokens};
 use syn::{
     parse_macro_input, punctuated::Punctuated, Data, DataStruct, DataUnion, DeriveInput, Expr,
-    ExprLit, Fields, Meta, NestedMeta, Token, Variant,
+    ExprLit, Fields, Meta, NestedMeta, Token,
 };
 
 #[proc_macro_derive(Variant, attributes(disunity))]
@@ -123,22 +123,47 @@ fn inner(input: DeriveInput) -> TokenStream2 {
             variant.discriminant = Some((
                 discriminant.eq_token,
                 Expr::from(ExprLit {
-                    lit: discriminant.lit,
+                    lit: discriminant.lit.clone(),
                     attrs: Vec::new(),
                 }),
             ));
-            Ok(variant)
-        })
-        .collect::<Result<Punctuated<Variant, Token![,]>, syn::Error>>();
 
-    let variants = match variants {
-        Ok(variants) => variants,
+            let literal = discriminant.lit;
+            let ident = variant.ident.clone();
+            Ok((variant, quote! { #literal => Some(Self::#ident) }))
+        })
+        .try_fold::<_, _, Result<(_, _), syn::Error>>(
+            (
+                <Punctuated<_, Token![,]>>::new(),
+                <Punctuated<_, Token![,]>>::new(),
+            ),
+            |(mut variants, mut arms), result| {
+                let (variant, arm) = result?;
+                variants.push(variant);
+                arms.push(arm);
+
+                Ok((variants, arms))
+            },
+        );
+
+    let (variants, arms) = match variants {
+        Ok((variants, arms)) => (variants, arms),
         Err(error) => return error.into_compile_error(),
     };
 
     quote! {
+        #[derive(Debug, PartialEq)]
         enum #name {
             #variants
+        }
+
+        impl #name {
+            fn from_int(value: isize) -> Option<Self> {
+                match value {
+                   #arms,
+                   _ => None,
+                }
+            }
         }
     }
     .into_token_stream()

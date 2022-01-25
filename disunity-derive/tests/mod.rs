@@ -11,4 +11,5 @@ fn tests() {
     t.compile_fail("tests/08-missing-discriminant-val.rs");
     t.compile_fail("tests/09-random-literal-in-attribute.rs");
     t.compile_fail("tests/10-misspell-attribute-list.rs");
+    t.pass("tests/11-from-integer.rs");
 }
