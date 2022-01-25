@@ -2,6 +2,7 @@ use disunity_derive::Variants;
 
 #[derive(Variants)]
 enum Class {
+    #[disunity(discriminant = 1)]
     GameObject { field: i32 },
 }
 

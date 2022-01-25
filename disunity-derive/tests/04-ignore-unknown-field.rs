@@ -3,7 +3,11 @@ use disunity_derive::Variants;
 #[derive(Variants)]
 enum Class {
     Unknown(u32),
-    GameObject { field: i32 },
+    #[disunity(discriminant = 1)]
+    GameObject {
+        field: i32,
+    },
+    #[disunity(discriminant = 2)]
     Transform,
 }
 

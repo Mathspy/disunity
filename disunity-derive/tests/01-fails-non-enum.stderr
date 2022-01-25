@@ -5,7 +5,7 @@ error: Variants can't be derived on structs
   | ^^^^^^
 
 error: Variants can't be derived on unions
- --> tests/01-fails-non-enum.rs:9:1
-  |
-9 | union MyUnion {
-  | ^^^^^
+  --> tests/01-fails-non-enum.rs:10:1
+   |
+10 | union MyUnion {
+   | ^^^^^

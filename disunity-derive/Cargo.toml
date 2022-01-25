@@ -14,7 +14,7 @@ path = "tests/mod.rs"
 [dependencies]
 proc-macro2 = { version = "1" }
 quote = { version = "1" }
-syn = { version = "1", features = ["derive"] }
+syn = { version = "1", features = ["derive", "parsing"] }
 
 [dev-dependencies]
 trybuild = { version = "1", features = ["diff"] }
