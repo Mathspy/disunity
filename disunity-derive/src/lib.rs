@@ -113,7 +113,7 @@ fn inner(input: DeriveInput) -> TokenStream2 {
                 (_, Some(Err(error))) => return Err(error),
                 (None, _) => {
                     return Err(syn::Error::new_spanned(
-                        variant,
+                        nested,
                         "excepted discriminant = N in disunity attribute macro",
                     ))
                 }

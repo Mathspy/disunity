@@ -1,0 +1,5 @@
+error: expected discriminant = N inside of disunity attribute
+ --> tests/10-misspell-attribute-list.rs:5:16
+  |
+5 |     #[disunity(misspelled = 3)]
+  |                ^^^^^^^^^^^^^^
