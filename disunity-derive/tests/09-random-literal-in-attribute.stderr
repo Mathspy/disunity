@@ -1,0 +1,11 @@
+error: unexpected literal in disunity attribute macro
+ --> tests/09-random-literal-in-attribute.rs:5:16
+  |
+5 |     #[disunity("hi from random valley")]
+  |                ^^^^^^^^^^^^^^^^^^^^^^^
+
+error: unexpected literal in disunity attribute macro
+  --> tests/09-random-literal-in-attribute.rs:11:34
+   |
+11 |     #[disunity(discriminant = 4, "hi from random valley")]
+   |                                  ^^^^^^^^^^^^^^^^^^^^^^^

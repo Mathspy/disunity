@@ -103,13 +103,14 @@ fn inner(input: DeriveInput) -> TokenStream2 {
 
             let discriminant = match (attribute_meta_list.next(), attribute_meta_list.next()) {
                 (Some(Ok(discriminant)), None) => discriminant,
-                (Some(_), Some(_)) => {
+                (Some(Ok(_)), Some(Ok(_))) => {
                     return Err(syn::Error::new_spanned(
                         nested,
                         "expected only one discriminant = N inside of disunity attribute",
                     ));
                 }
                 (Some(Err(error)), _) => return Err(error),
+                (_, Some(Err(error))) => return Err(error),
                 (None, _) => {
                     return Err(syn::Error::new_spanned(
                         variant,

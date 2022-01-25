@@ -9,4 +9,5 @@ fn tests() {
     t.compile_fail("tests/06-too-many-attributes.rs");
     t.compile_fail("tests/07-missing-disunity-attribute.rs");
     t.compile_fail("tests/08-missing-discriminant-val.rs");
+    t.compile_fail("tests/09-random-literal-in-attribute.rs");
 }
