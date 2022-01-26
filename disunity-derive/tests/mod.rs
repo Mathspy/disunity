@@ -14,4 +14,5 @@ fn tests() {
     t.pass("tests/11-from-integer.rs");
     t.pass("tests/12-from-variant.rs");
     t.pass("tests/13-discriminant-type.rs");
+    t.pass("tests/14-discriminant-type-default.rs");
 }
