@@ -15,7 +15,9 @@ enum Class {
 }
 
 fn main() {
+    assert_eq!(ClassVariant::from_int(0), None);
     assert_eq!(ClassVariant::from_int(1), Some(ClassVariant::GameObject));
     assert_eq!(ClassVariant::from_int(2), Some(ClassVariant::Transform));
     assert_eq!(ClassVariant::from_int(3), Some(ClassVariant::Magic));
+    assert_eq!(ClassVariant::from_int(4), None);
 }
