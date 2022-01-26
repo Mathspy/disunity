@@ -28,6 +28,7 @@ fn inner(input: DeriveInput) -> TokenStream2 {
     };
 
     let name = format_ident!("{}Variant", input.ident);
+    let original_name = input.ident;
     let variants = data
         .variants
         .into_iter()
@@ -119,6 +120,8 @@ fn inner(input: DeriveInput) -> TokenStream2 {
                 }
             };
 
+            let mut original_fields = Fields::Unit;
+            std::mem::swap(&mut variant.fields, &mut original_fields);
             variant.fields = Fields::Unit;
             variant.discriminant = Some((
                 discriminant.eq_token,
@@ -130,25 +133,57 @@ fn inner(input: DeriveInput) -> TokenStream2 {
 
             let literal = discriminant.lit;
             let ident = variant.ident.clone();
-            Ok((variant, quote! { #literal => Some(Self::#ident) }))
+
+            let from_int_arm = quote! { #literal => Some(Self::#ident) };
+
+            // We want to create the enum from the variants only if the original variant
+            // has no fields
+            let from_variant_arm = if let Fields::Unit = original_fields {
+                Some(quote! { #name::#ident => Some(Self::#ident) })
+            } else {
+                None
+            };
+            Ok((variant, from_int_arm, from_variant_arm))
         })
-        .try_fold::<_, _, Result<(_, _), syn::Error>>(
+        .try_fold::<_, _, Result<(_, _, _), syn::Error>>(
             (
                 <Punctuated<_, Token![,]>>::new(),
                 <Punctuated<_, Token![,]>>::new(),
+                <Punctuated<_, Token![,]>>::new(),
             ),
-            |(mut variants, mut arms), result| {
-                let (variant, arm) = result?;
+            |(mut variants, mut from_int_arms, mut from_variant_arms), result| {
+                let (variant, from_int_arm, from_variant_arm) = result?;
                 variants.push(variant);
-                arms.push(arm);
+                from_int_arms.push(from_int_arm);
+                if let Some(from_variant_arm) = from_variant_arm {
+                    from_variant_arms.push(from_variant_arm);
+                }
 
-                Ok((variants, arms))
+                Ok((variants, from_int_arms, from_variant_arms))
             },
         );
 
-    let (variants, arms) = match variants {
-        Ok((variants, arms)) => (variants, arms),
+    let (variants, from_int_arms, from_variant_arms) = match variants {
+        Ok((variants, from_int_arms, from_variant_arms)) => {
+            (variants, from_int_arms, from_variant_arms)
+        }
         Err(error) => return error.into_compile_error(),
+    };
+
+    // There may not be any variant conversions if all variants have fields
+    let from_variants = if from_variant_arms.is_empty() {
+        quote! {}
+    } else {
+        quote! {
+            impl #original_name {
+                fn from_variant(variant: #name) -> Option<Self> {
+                    match variant {
+                       #from_variant_arms,
+                       _ => None,
+                    }
+                }
+            }
+        }
     };
 
     quote! {
@@ -160,11 +195,13 @@ fn inner(input: DeriveInput) -> TokenStream2 {
         impl #name {
             fn from_int(value: isize) -> Option<Self> {
                 match value {
-                   #arms,
+                   #from_int_arms,
                    _ => None,
                 }
             }
         }
+
+        #from_variants
     }
     .into_token_stream()
 }
