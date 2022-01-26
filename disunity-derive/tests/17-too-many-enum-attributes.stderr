@@ -1,0 +1,5 @@
+error: unexpected second #[disunity] attribute macro on enum
+ --> tests/17-too-many-enum-attributes.rs:5:1
+  |
+5 | #[disunity(discriminant = u8)]
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
