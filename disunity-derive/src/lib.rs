@@ -2,8 +2,8 @@ use proc_macro::TokenStream;
 use proc_macro2::TokenStream as TokenStream2;
 use quote::{format_ident, quote, ToTokens};
 use syn::{
-    parse_macro_input, punctuated::Punctuated, Data, DataStruct, DataUnion, DeriveInput, Expr,
-    ExprLit, Fields, Meta, NestedMeta, Token,
+    parse_macro_input, punctuated::Punctuated, Attribute, Data, DataStruct, DataUnion, DeriveInput,
+    Expr, ExprLit, Fields, Meta, NestedMeta, Token,
 };
 
 #[proc_macro_derive(Variant, attributes(disunity))]
@@ -36,33 +36,18 @@ fn inner(input: DeriveInput) -> TokenStream2 {
         .map(|mut variant| {
             let attrs = std::mem::take(&mut variant.attrs);
 
-            let mut attributes = attrs
-                .into_iter()
-                .filter(|attribute| {
-                    attribute
-                        .path
-                        .get_ident()
-                        .map(|ident| ident == "disunity")
-                        .unwrap_or(false)
-                })
-                .map(|attribute| (attribute.parse_meta(), attribute));
-
-            let meta = match (attributes.next(), attributes.next()) {
-                (Some((Ok(meta), _)), None) => meta,
-                (Some(_), Some((_, attribute))) => {
-                    return Err(syn::Error::new_spanned(
+            let meta = get_disunity_attr(attrs)
+                .map_err(|error| match error {
+                    GetAttrError::ExtraAttribute(attribute) => syn::Error::new_spanned(
                         attribute,
                         "unexpected second #[disunity] attribute macro on variant",
-                    ));
-                }
-                (Some((Err(error), _)), _) => return Err(error),
-                (None, _) => {
-                    return Err(syn::Error::new_spanned(
-                        variant,
+                    ),
+                    GetAttrError::MissingAttribute => syn::Error::new_spanned(
+                        &variant,
                         "variant without a #[disunity(discriminant = N)] attribute",
-                    ))
-                }
-            };
+                    ),
+                })
+                .and_then(|attribute| attribute.parse_meta())?;
 
             let (mut attribute_meta_list, nested) = match meta {
                 Meta::List(list) => {
@@ -204,4 +189,29 @@ fn inner(input: DeriveInput) -> TokenStream2 {
         #from_variants
     }
     .into_token_stream()
+}
+
+#[repr(u8)]
+enum GetAttrError {
+    ExtraAttribute(Attribute),
+    MissingAttribute,
+}
+
+fn get_disunity_attr(attrs: Vec<Attribute>) -> Result<Attribute, GetAttrError> {
+    let mut attributes = attrs
+        .into_iter()
+        .filter(|attribute| {
+            attribute
+                .path
+                .get_ident()
+                .map(|ident| ident == "disunity")
+                .unwrap_or(false)
+        })
+        .map(|attribute| attribute);
+
+    match (attributes.next(), attributes.next()) {
+        (Some(attribute), None) => Ok(attribute),
+        (Some(_), Some(attribute)) => Err(GetAttrError::ExtraAttribute(attribute)),
+        (None, _) => Err(GetAttrError::MissingAttribute),
+    }
 }
