@@ -18,4 +18,5 @@ fn tests() {
     t.compile_fail("tests/15-invalid-discriminant-type.rs");
     t.compile_fail("tests/16-invalid-enum-attribute.rs");
     t.compile_fail("tests/17-too-many-enum-attributes.rs");
+    t.compile_fail("tests/18-misspelled-enum-attribute.rs");
 }

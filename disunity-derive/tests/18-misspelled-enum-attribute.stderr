@@ -1,0 +1,5 @@
+error: expected discriminant = T inside of disunity attribute
+ --> tests/18-misspelled-enum-attribute.rs:4:11
+  |
+4 | #[disunity(misspelled = u8)]
+  |           ^^^^^^^^^^^^^^^^^
