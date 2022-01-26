@@ -9,8 +9,6 @@ repository = "https://github.com/Mathspy/disunity/"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-num-traits = "0.2"
-num-derive = "0.3"
 disunity-derive = { path = "./disunity-derive" }
 
 [workspace]
