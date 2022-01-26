@@ -1,5 +1,5 @@
 error[E0308]: mismatched types
- --> tests/05-invalid-discriminant.rs:5:31
+ --> tests/05-invalid-variant-discriminant.rs:5:31
   |
 5 |     #[disunity(discriminant = "nonsense")]
   |                               ^^^^^^^^^^ expected `isize`, found `&str`

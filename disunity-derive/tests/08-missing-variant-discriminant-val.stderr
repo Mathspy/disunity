@@ -1,5 +1,5 @@
 error: expected discriminant = N inside of disunity attribute
- --> tests/08-missing-discriminant-val.rs:5:16
+ --> tests/08-missing-variant-discriminant-val.rs:5:16
   |
 5 |     #[disunity(discriminant)]
   |                ^^^^^^^^^^^^
