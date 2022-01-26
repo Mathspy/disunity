@@ -1,0 +1,5 @@
+error: expected a primitive integer type (like u8)
+ --> tests/15-invalid-discriminant-type.rs:4:27
+  |
+4 | #[disunity(discriminant = str)]
+  |                           ^^^

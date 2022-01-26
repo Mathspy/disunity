@@ -15,4 +15,5 @@ fn tests() {
     t.pass("tests/12-from-variant.rs");
     t.pass("tests/13-discriminant-type.rs");
     t.pass("tests/14-discriminant-type-default.rs");
+    t.compile_fail("tests/15-invalid-discriminant-type.rs");
 }
