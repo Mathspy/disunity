@@ -2,9 +2,13 @@ use proc_macro::TokenStream;
 use proc_macro2::TokenStream as TokenStream2;
 use quote::{format_ident, quote, ToTokens};
 use syn::{
-    parse_macro_input, punctuated::Punctuated, Attribute, Data, DataStruct, DataUnion, DeriveInput,
-    Expr, ExprLit, Fields, Meta, NestedMeta, Token,
+    parse_macro_input, punctuated::Punctuated, Attribute, Binding, Data, DataStruct, DataUnion,
+    DeriveInput, Expr, ExprLit, Fields, Meta, NestedMeta, Token, Type,
 };
+
+const INT_PRIMITIVES: &[&str] = &[
+    "u8", "u16", "u32", "u64", "u128", "usize", "i8", "i16", "i32", "i64", "i128", "isize",
+];
 
 #[proc_macro_derive(Variant, attributes(disunity))]
 pub fn derive(input: TokenStream) -> TokenStream {
@@ -25,6 +29,48 @@ fn inner(input: DeriveInput) -> TokenStream2 {
                 .into_compile_error();
         }
         Data::Enum(data) => data,
+    };
+
+    let discriminant_type = get_disunity_attr(input.attrs).map_or_else(
+        |error| match error {
+            GetAttrError::ExtraAttribute(attribute) => Err(syn::Error::new_spanned(
+                attribute,
+                "unexpected second #[disunity] attribute macro on enum",
+            )),
+            // The default enum representation in Rust is isize
+            GetAttrError::MissingAttribute => Ok(syn::parse2::<Type>(quote! { isize })?),
+        },
+        |attribute| {
+            let binding = attribute.parse_args::<Binding>()?;
+
+            if binding.ident != "discriminant" {
+                return Err(syn::Error::new_spanned(
+                    attribute.tokens,
+                    "expected discriminant = T inside of disunity attribute",
+                ));
+            }
+
+            match &binding.ty {
+                Type::Path(type_path)
+                    if type_path
+                        .path
+                        .get_ident()
+                        .map(|ident| INT_PRIMITIVES.iter().any(|x| *ident == *x))
+                        .unwrap_or(false) =>
+                {
+                    Ok(binding.ty)
+                }
+                _ => Err(syn::Error::new_spanned(
+                    binding.ty,
+                    "expected a primitive integer type (like u8)",
+                )),
+            }
+        },
+    );
+
+    let discriminant_type = match discriminant_type {
+        Ok(discriminant_type) => discriminant_type,
+        Err(error) => return error.to_compile_error(),
     };
 
     let name = format_ident!("{}Variant", input.ident);
@@ -173,12 +219,13 @@ fn inner(input: DeriveInput) -> TokenStream2 {
 
     quote! {
         #[derive(Debug, PartialEq)]
+        #[repr(#discriminant_type)]
         enum #name {
             #variants
         }
 
         impl #name {
-            fn from_int(value: isize) -> Option<Self> {
+            fn from_int(value: #discriminant_type) -> Option<Self> {
                 match value {
                    #from_int_arms,
                    _ => None,

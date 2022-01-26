@@ -13,4 +13,5 @@ fn tests() {
     t.compile_fail("tests/10-misspell-attribute-list.rs");
     t.pass("tests/11-from-integer.rs");
     t.pass("tests/12-from-variant.rs");
+    t.pass("tests/13-discriminant-type.rs");
 }
