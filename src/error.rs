@@ -131,7 +131,7 @@ mod tests {
             ParseError::unexpected("reading assets file", io::Error::from(ErrorKind::NotFound));
         assert_eq!(
             format!("{error:?}"),
-            "Unexpected IO error while \"reading asset file\"\n\nSource: Kind(NotFound)"
+            "Unexpected IO error while \"reading assets file\"\n\nSource: Kind(NotFound)"
         );
     }
 }
