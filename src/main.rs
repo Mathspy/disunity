@@ -276,7 +276,9 @@ fn main() -> ParseResult<()> {
     let header = dbg!(parse_header(&mut file)?);
     dbg!(parse_unity_version(&mut file)?);
     dbg!(parse_target_platform(&mut file, header.endianess)?);
-    let _has_type_tree = parse_type_tree_presence(&mut file)?;
+    let has_type_tree = parse_type_tree_presence(&mut file)?;
+    assert!(has_type_tree == false, "No type tree support currently");
+
     let _asset_types = parse_asset_types(&mut file, header.endianess)?;
 
     Ok(())
