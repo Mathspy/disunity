@@ -67,3 +67,18 @@ if class id == 114:
   script id              16 bytes
 endif
 old type hash            16 bytes
+
+# ASSET INDEX - DEPENDS ON `endianness` FROM HEADER. 0 is little endian
+count                     4 bytes
+--- pad to align with 4 bytes ---
+[entry 1]                24 bytes
+[entry 2]                24 bytes
+...                 each 24 bytes
+[entry count]            24 bytes
+
+entry:
+path id                   8 bytes
+offset                    8 bytes // the actual offset will be
+                                  // this + data_offset from header
+size                      4 bytes
+asset type index          4 bytes

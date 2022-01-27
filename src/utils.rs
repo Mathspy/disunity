@@ -1,5 +1,5 @@
 use crate::Endianess;
-use std::io::{BufRead, Error, ErrorKind, Read, Result as IoResult};
+use std::io::{BufRead, BufReader, Error, ErrorKind, Read, Result as IoResult, Seek};
 
 pub(crate) trait ReadExt: Read {
     fn read_u8(&mut self) -> IoResult<u8> {
@@ -83,3 +83,25 @@ pub(crate) trait BufReadExt: BufRead {
 }
 
 impl<T> BufReadExt for T where T: BufRead {}
+
+pub trait SeekExt {
+    fn align_4(&mut self) -> IoResult<()>;
+}
+
+impl<T> SeekExt for BufReader<T>
+where
+    T: Seek,
+{
+    fn align_4(&mut self) -> IoResult<()> {
+        let current_position = self.stream_position()?;
+        let new_position = (current_position + 3) & !3;
+        let relative = new_position - current_position;
+        if relative > 0 {
+            // This conversion is fine because relative will only ever be less
+            // than 4
+            self.seek_relative(relative as i64)
+        } else {
+            Ok(())
+        }
+    }
+}

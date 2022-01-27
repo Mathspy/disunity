@@ -7,9 +7,12 @@ use std::{
     fs::File,
     io::{BufReader, ErrorKind, Read},
 };
-use utils::{BufReadExt, ReadExt};
+use utils::{BufReadExt, ReadExt, SeekExt};
 
 use crate::error::ParseError;
+
+#[cfg(target_ptr_width = "16")]
+compile_error!("disunity doesn't support 16-bit platforms");
 
 #[derive(Clone, Copy, Debug)]
 enum Endianess {
@@ -269,6 +272,55 @@ fn parse_asset_types(
         .collect()
 }
 
+#[derive(Debug)]
+struct AssetEntry<'a> {
+    path_id: u64,
+    offset: u64,
+    size: u32,
+    ty: &'a AssetType,
+}
+
+type AssetsIndex<'a> = Vec<AssetEntry<'a>>;
+
+fn parse_index<'class>(
+    file: &mut BufReader<File>,
+    endianess: Endianess,
+    data_offset: u64,
+    types: &'class [AssetType],
+) -> ParseResult<AssetsIndex<'class>> {
+    let count = file.read_u32(endianess).context("reading entry count")?;
+    file.align_4().context("aligning file reader")?;
+
+    (0..count)
+        .map(|_| {
+            let path_id = file.read_u64(endianess).context("reading entry path id")?;
+            let offset = file.read_u64(endianess).context("reading entry offset")?;
+            let size = file.read_u32(endianess).context("reading entry size")?;
+            let ty = file.read_u32(endianess).context("reading entry type")?;
+
+            let ty = match types
+                .get(usize::try_from(ty).expect("disunity doesn't support 16-bit platforms"))
+            {
+                Some(ty) => ty,
+                None => {
+                    return Err(ParseError::expected(
+                        "one of the file's asset types",
+                        Vec::from(ty.to_le_bytes()),
+                        None,
+                    ))
+                }
+            };
+
+            Ok(AssetEntry {
+                path_id,
+                offset: offset + data_offset,
+                size,
+                ty,
+            })
+        })
+        .collect()
+}
+
 fn main() -> ParseResult<()> {
     let file = File::open("/Users/mathspy/Downloads/resources.assets").unwrap();
     let mut file = BufReader::new(file);
@@ -279,7 +331,13 @@ fn main() -> ParseResult<()> {
     let has_type_tree = parse_type_tree_presence(&mut file)?;
     assert!(has_type_tree == false, "No type tree support currently");
 
-    let _asset_types = parse_asset_types(&mut file, header.endianess)?;
+    let asset_types = parse_asset_types(&mut file, header.endianess)?;
+    let _assets_index = parse_index(
+        &mut file,
+        header.endianess,
+        header.data_offset,
+        asset_types.as_slice(),
+    )?;
 
     Ok(())
 }
