@@ -3,7 +3,7 @@ use std::{borrow::Cow, fmt, io};
 pub struct ExpectedError {
     pub(crate) expected: Cow<'static, str>,
     pub(crate) received: Vec<u8>,
-    pub(crate) source: io::Error,
+    pub(crate) source: Option<io::Error>,
 }
 
 pub struct UnexpectedIoError {
@@ -17,7 +17,7 @@ pub enum ParseError {
 }
 
 impl ParseError {
-    pub fn expected(what: &'static str, received: Vec<u8>, source: io::Error) -> Self {
+    pub fn expected(what: &'static str, received: Vec<u8>, source: Option<io::Error>) -> Self {
         Self::Expected(ExpectedError {
             expected: Cow::Borrowed(what),
             received,
@@ -54,7 +54,9 @@ impl fmt::Debug for ParseError {
             }) => {
                 f.write_str(&format!("Expected {expected} but received {received:?}"))?;
 
-                fmt_source_debug(source, f)?;
+                if let Some(source) = source {
+                    fmt_source_debug(source, f)?;
+                }
             }
             ParseError::UnexpectedIo(UnexpectedIoError { context, source }) => {
                 f.write_str("Unexpected IO error while ")?;
@@ -89,7 +91,7 @@ impl fmt::Display for ParseError {
 impl std::error::Error for ParseError {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         match self {
-            ParseError::Expected(ExpectedError { source, .. }) => Some(source),
+            ParseError::Expected(ExpectedError { source, .. }) => source.as_ref().map(|s| s as _),
             ParseError::UnexpectedIo(UnexpectedIoError { source, .. }) => Some(source),
         }
     }
@@ -120,7 +122,7 @@ mod tests {
         let error = ParseError::expected(
             "unity version",
             Vec::new(),
-            io::Error::from(ErrorKind::UnexpectedEof),
+            Some(io::Error::from(ErrorKind::UnexpectedEof)),
         );
         assert_eq!(
             format!("{error:?}"),

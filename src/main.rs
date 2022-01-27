@@ -76,10 +76,10 @@ fn parse_unity_version(file: &mut BufReader<File>) -> ParseResult<String> {
     file.read_null_terminated_string()
         .map_err(|(error, bytes)| match error.kind() {
             ErrorKind::UnexpectedEof => {
-                ParseError::expected("Unity version ending with a null byte", bytes, error)
+                ParseError::expected("Unity version ending with a null byte", bytes, Some(error))
             }
             ErrorKind::InvalidData => {
-                ParseError::expected("valid utf-8 for Unity version", bytes, error)
+                ParseError::expected("valid utf-8 for Unity version", bytes, Some(error))
             }
             _ => ParseError::unexpected("parsing Unity version string", error),
         })
