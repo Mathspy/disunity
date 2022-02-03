@@ -321,6 +321,40 @@ fn parse_index<'class>(
         .collect()
 }
 
+/// This contains some kind of references to other things, but I am not sure of their significance
+/// or even what are they referencing currently so for now this will just have to do as an Unknown
+/// but we will hopefully get there!
+#[derive(Debug)]
+struct Unknown1 {
+    unknown_1: u32,
+    unknown_2: u64,
+}
+
+fn parse_unknown_list_1(
+    file: &mut BufReader<File>,
+    endianess: Endianess,
+) -> ParseResult<Vec<Unknown1>> {
+    let count = file
+        .read_u32(endianess)
+        .context("reading unknown list 1 count")?;
+
+    (0..count)
+        .map(|_| {
+            let unknown_1 = file
+                .read_u32(endianess)
+                .context("reading unknown_1 from unknown_list_1")?;
+            let unknown_2 = file
+                .read_u64(endianess)
+                .context("reading unknown_2 from unknown_list_1")?;
+
+            Ok(Unknown1 {
+                unknown_1,
+                unknown_2,
+            })
+        })
+        .collect()
+}
+
 fn main() -> ParseResult<()> {
     let file = File::open("/Users/mathspy/Downloads/resources.assets").unwrap();
     let mut file = BufReader::new(file);
@@ -338,6 +372,8 @@ fn main() -> ParseResult<()> {
         header.data_offset,
         asset_types.as_slice(),
     )?;
+    let unknown_list_1 = parse_unknown_list_1(&mut file, header.endianess)?;
+    dbg!(unknown_list_1.len());
 
     Ok(())
 }

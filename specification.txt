@@ -33,6 +33,7 @@ BIG FILE SUPPORT (version 0x16)
 [HEADER TAIL]
 [ASSET TYPES]
 [ENTRY INDEX]
+[UNKNOWN_1]
 
 # HEADER - BIGENDIAN    (48 bytes)
 ------ 8 bytes of padding -------
@@ -82,3 +83,14 @@ offset                    8 bytes // the actual offset will be
                                   // this + data_offset from header
 size                      4 bytes
 asset type index          4 bytes
+
+# UNKNOWN_1 - DEPENDS ON `endianness` FROM HEADER. 0 is little endian
+count                     4 bytes
+[unknown1 1]             12 bytes
+[unknown1 2]             12 bytes
+...                 each 12 bytes
+[unknown1 count]         12 bytes
+
+unknown1:
+unknown                   4 bytes
+unknown                   8 bytes
