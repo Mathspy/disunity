@@ -1,13 +1,13 @@
-use std::{borrow::Cow, fmt, io};
+use std::{fmt, io};
 
 pub struct ExpectedError {
-    pub(crate) expected: Cow<'static, str>,
+    pub(crate) expected: String,
     pub(crate) received: Vec<u8>,
     pub(crate) source: Option<io::Error>,
 }
 
 pub struct UnexpectedIoError {
-    pub(crate) context: Cow<'static, str>,
+    pub(crate) context: String,
     pub(crate) source: io::Error,
 }
 
@@ -17,17 +17,17 @@ pub enum ParseError {
 }
 
 impl ParseError {
-    pub fn expected(what: &'static str, received: Vec<u8>, source: Option<io::Error>) -> Self {
+    pub fn expected<S: ToString>(what: S, received: Vec<u8>, source: Option<io::Error>) -> Self {
         Self::Expected(ExpectedError {
-            expected: Cow::Borrowed(what),
+            expected: what.to_string(),
             received,
             source,
         })
     }
 
-    pub fn unexpected(context: &'static str, source: io::Error) -> Self {
+    pub fn unexpected<S: ToString>(context: S, source: io::Error) -> Self {
         Self::UnexpectedIo(UnexpectedIoError {
-            context: Cow::Borrowed(context),
+            context: context.to_string(),
             source,
         })
     }
@@ -105,7 +105,7 @@ impl<T> ParserContext<T> for io::Result<T> {
     fn context(self, ctx: &'static str) -> ParseResult<T> {
         self.map_err(|source| {
             ParseError::UnexpectedIo(UnexpectedIoError {
-                context: Cow::Borrowed(ctx),
+                context: ctx.to_string(),
                 source,
             })
         })
