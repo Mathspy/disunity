@@ -112,6 +112,22 @@ impl<T> ParserContext<T> for io::Result<T> {
     }
 }
 
+pub fn string_error_to_parse_error<'a>(
+    expected: &'a str,
+) -> impl Fn((io::Error, Vec<u8>)) -> ParseError + 'a {
+    move |(error, bytes)| match error.kind() {
+        io::ErrorKind::UnexpectedEof => ParseError::expected(
+            format!("{expected} ending with a null byte"),
+            bytes,
+            Some(error),
+        ),
+        io::ErrorKind::InvalidData => {
+            ParseError::expected(format!("valid utf-8 for {expected}"), bytes, Some(error))
+        }
+        _ => ParseError::unexpected(format!("parsing {expected} string"), error),
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::ParseError;

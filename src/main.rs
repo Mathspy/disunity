@@ -2,10 +2,10 @@ mod error;
 mod utils;
 
 use disunity_derive::Variant;
-use error::{ParseResult, ParserContext};
+use error::{string_error_to_parse_error, ParseResult, ParserContext};
 use std::{
     fs::File,
-    io::{BufReader, ErrorKind, Read},
+    io::{BufReader, Read},
 };
 use utils::{BufReadExt, ReadExt, SeekExt};
 
@@ -77,15 +77,7 @@ fn parse_header(file: &mut BufReader<File>) -> ParseResult<Header> {
 
 fn parse_unity_version(file: &mut BufReader<File>) -> ParseResult<String> {
     file.read_null_terminated_string()
-        .map_err(|(error, bytes)| match error.kind() {
-            ErrorKind::UnexpectedEof => {
-                ParseError::expected("Unity version ending with a null byte", bytes, Some(error))
-            }
-            ErrorKind::InvalidData => {
-                ParseError::expected("valid utf-8 for Unity version", bytes, Some(error))
-            }
-            _ => ParseError::unexpected("parsing Unity version string", error),
-        })
+        .map_err(string_error_to_parse_error("Unity version"))
 }
 
 #[derive(Debug)]
