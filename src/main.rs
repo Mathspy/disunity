@@ -6,6 +6,7 @@ use error::{string_error_to_parse_error, ParseResult, ParserContext};
 use std::{
     fs::File,
     io::{BufReader, Read},
+    path::PathBuf,
 };
 use utils::{BufReadExt, ReadExt, SeekExt};
 
@@ -347,6 +348,37 @@ fn parse_unknown_list_1(
         .collect()
 }
 
+#[derive(Debug)]
+struct External {
+    guid: u128,
+    ty: u32,
+    path: PathBuf,
+}
+
+fn parse_externals(file: &mut BufReader<File>, endianess: Endianess) -> ParseResult<Vec<External>> {
+    let count = file
+        .read_u32(endianess)
+        .context("reading script type count")?;
+
+    (0..count)
+        .map(|_| {
+            let padding_bytes = file.read_u8().context("reading external padding byte")?;
+            assert!(
+                padding_bytes == 0,
+                "External padding byte was not 0, invariant was not held, please report issue!"
+            );
+            let guid = file.read_u128(endianess).context("reading external guid")?;
+            let ty = file.read_u32(endianess).context("reading external type")?;
+            let path = file
+                .read_null_terminated_string()
+                .map_err(string_error_to_parse_error("external path"))?;
+            let path = PathBuf::from(path);
+
+            Ok(External { guid, ty, path })
+        })
+        .collect()
+}
+
 fn main() -> ParseResult<()> {
     let file = File::open("/Users/mathspy/Downloads/resources.assets").unwrap();
     let mut file = BufReader::new(file);
@@ -366,6 +398,7 @@ fn main() -> ParseResult<()> {
     )?;
     let unknown_list_1 = parse_unknown_list_1(&mut file, header.endianess)?;
     dbg!(unknown_list_1.len());
+    let _externals = dbg!(parse_externals(&mut file, header.endianess)?);
 
     Ok(())
 }

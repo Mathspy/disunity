@@ -34,6 +34,7 @@ BIG FILE SUPPORT (version 0x16)
 [ASSET TYPES]
 [ENTRY INDEX]
 [UNKNOWN_1]
+[EXTERNALS]
 
 # HEADER - BIGENDIAN    (48 bytes)
 ------ 8 bytes of padding -------
@@ -94,3 +95,16 @@ count                     4 bytes
 unknown1:
 unknown                   4 bytes
 unknown                   8 bytes
+
+# EXTERNALS - DEPENDS ON `endianness` FROM HEADER. 0 is little endian
+count                     4 bytes
+[external 1]        unknown bytes
+[external 2]        unknown bytes
+...            each unknown bytes
+[external count]    unknown bytes
+
+external:
+------- 1 byte of padding -------
+guid                     16 bytes
+type                      4 bytes
+path               string to null
