@@ -173,6 +173,8 @@ enum AssetClass {
     LineRenderer,
     #[disunity(discriminant = 128)]
     Font,
+    #[disunity(discriminant = 150)]
+    PreloadData,
     #[disunity(discriminant = 198)]
     ParticleSystem,
     #[disunity(discriminant = 199)]
